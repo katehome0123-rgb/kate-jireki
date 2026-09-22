@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KATE 施工実績アップロード</title>
+<style>
+    * { box-sizing: border-box; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic', sans-serif;
+        background: #f1f5f9;
+        margin: 0;
+        padding: 24px;
+        color: #1e293b;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; }
+    h1 { font-size: 20px; color: #0f172a; }
+    .card { background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 20px; }
+    label { font-size: 13px; font-weight: 700; color: #334155; display: block; margin-bottom: 6px; margin-top: 14px; }
+    input[type="text"], input[type="date"], select {
+        width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;
+    }
+    .drop-row { display: flex; gap: 16px; margin-top: 14px; }
+    .drop-zone {
+        flex: 1; border: 2px dashed #cbd5e1; border-radius: 10px; padding: 16px; text-align: center;
+        color: #64748b; font-size: 13px; cursor: pointer; position: relative; min-height: 140px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        background: #f8fafc;
+    }
+    .drop-zone.dragover { border-color: #0ea5e9; background: #e0f2fe; }
+    .drop-zone img { max-width: 100%; max-height: 160px; border-radius: 6px; margin-top: 8px; }
+    .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .drop-label { font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    button.main-btn {
+        width: 100%; margin-top: 20px; padding: 14px; font-size: 15px; font-weight: 700;
+        background: #0ea5e9; color: #fff; border: none; border-radius: 10px; cursor: pointer;
+    }
+    button.main-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+    .settings-toggle { font-size: 12px; color: #64748b; text-align: right; cursor: pointer; text-decoration: underline; }
+    #settingsBox { display: none; }
+    .status { margin-top: 14px; font-size: 13px; padding: 10px; border-radius: 8px; }
+    .status.ok { background: #f0fdf4; color: #15803d; }
+    .status.err { background: #fef2f2; color: #dc2626; }
+    .status.busy { background: #f0f9ff; color: #0369a1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <h1>KATE 施工実績アップロード</h1>
+
+    <div class="card">
+        <div class="settings-toggle" id="settingsToggle">GitHub接続設定を表示/変更</div>
+        <div id="settingsBox">
+            <label>GitHubユーザー名(オーナー名)</label>
+            <input type="text" id="ghOwner" placeholder="例: katehome0123-rgb">
+            <label>リポジトリ名</label>
+            <input type="text" id="ghRepo" placeholder="kate-jireki" value="kate-jireki">
+            <label>個人アクセストークン(ghp_で始まる文字列)</label>
+            <input type="text" id="ghToken" placeholder="ghp_xxxxxxxxxxxxxxxx">
+            <button class="main-btn" id="saveSettingsBtn" style="margin-top:14px;">この設定を保存する</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <label>邸名・現場名(任意)</label>
+        <input type="text" id="title" placeholder="例: 田中様邸">
+
+        <label>地域</label>
+        <input type="text" id="region" placeholder="例: 足立区">
+
+        <label>色</label>
+        <input type="text" id="color" placeholder="例: ホワイト系">
+
+        <label>部位</label>
+        <select id="part">
+            <option>外壁</option>
+            <option>屋根</option>
+            <option>ベランダ</option>
+            <option>破風板</option>
+            <option>軒天</option>
+            <option>その他</option>
+        </select>
+
+        <label>日付</label>
+        <input type="date" id="workDate">
+
+        <div class="drop-row">
+            <div class="drop-zone" id="beforeZone">
+                <div class="drop-label">Before写真</div>
+                <div>タップ or ドラッグ&ドロップ</div>
+                <img id="beforePreview" style="display:none;">
+                <input type="file" id="beforeInput" accept="image/*">
+            </div>
+            <div class="drop-zone" id="afterZone">
+                <div class="drop-label">After写真</div>
+                <div>タップ or ドラッグ&ドロップ</div>
+                <img id="afterPreview" style="display:none;">
+                <input type="file" id="afterInput" accept="image/*">
+            </div>
+        </div>
+
+        <button class="main-btn" id="uploadBtn">この施工実績を登録する</button>
+        <div id="statusBox"></div>
+    </div>
+</div>
+
+<script>
+    const $ = (id) => document.getElementById(id);
+
+    // ── 設定の読み書き ──
+    function loadSettings() {
+        $('ghOwner').value = localStorage.getItem('kj_owner') || '';
+        $('ghRepo').value = localStorage.getItem('kj_repo') || 'kate-jireki';
+        $('ghToken').value = localStorage.getItem('kj_token') || '';
+    }
+    function saveSettings() {
+        localStorage.setItem('kj_owner', $('ghOwner').value.trim());
+        localStorage.setItem('kj_repo', $('ghRepo').value.trim());
+        localStorage.setItem('kj_token', $('ghToken').value.trim());
+        showStatus('設定を保存しました', 'ok');
+        $('settingsBox').style.display = 'none';
+    }
+    $('settingsToggle').addEventListener('click', () => {
+        $('settingsBox').style.display = $('settingsBox').style.display === 'none' ? 'block' : 'none';
+    });
+    $('saveSettingsBtn').addEventListener('click', saveSettings);
+    loadSettings();
+    if (!localStorage.getItem('kj_owner')) $('settingsBox').style.display = 'block';
+
+    $('workDate').value = new Date().toISOString().slice(0, 10);
+
+    // ── 画像のドラッグ&ドロップ+選択+リサイズ ──
+    let beforeFile = null, afterFile = null;
+
+    function setupDropZone(zoneId, inputId, previewId, setFile) {
+        const zone = $(zoneId), input = $(inputId), preview = $(previewId);
+        function handleFile(file) {
+            if (!file) return;
+            setFile(file);
+            const reader = new FileReader();
+            reader.onload = (e) => { preview.src = e.target.result; preview.style.display = 'block'; };
+            reader.readAsDataURL(file);
+        }
+        input.addEventListener('change', (e) => handleFile(e.target.files[0]));
+        zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('dragover');
+            handleFile(e.dataTransfer.files[0]);
+        });
+    }
+    setupDropZone('beforeZone', 'beforeInput', 'beforePreview', (f) => beforeFile = f);
+    setupDropZone('afterZone', 'afterInput', 'afterPreview', (f) => afterFile = f);
+
+    // 画像を1600px以内・JPEG圧縮してBase64化(容量節約)
+    function resizeAndEncode(file) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const reader = new FileReader();
+            reader.onload = (e) => { img.src = e.target.result; };
+            reader.onerror = reject;
+            img.onload = () => {
+                const maxW = 1600;
+                const scale = Math.min(1, maxW / img.width);
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                resolve(dataUrl.split(',')[1]); // base64のみ
+            };
+            img.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function showStatus(msg, type) {
+        const box = $('statusBox');
+        box.textContent = msg;
+        box.className = 'status ' + type;
+    }
+
+    // ── GitHub API 経由でファイルを保存 ──
+    function ghConfig() {
+        return {
+            owner: localStorage.getItem('kj_owner'),
+            repo: localStorage.getItem('kj_repo'),
+            token: localStorage.getItem('kj_token')
+        };
+    }
+
+    async function ghPutFile(path, base64Content, message, sha) {
+        const { owner, repo, token } = ghConfig();
+        const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+        const body = { message, content: base64Content };
+        if (sha) body.sha = sha;
+        const res = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github+json'
+            },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error('GitHub保存エラー: ' + (err.message || res.status));
+        }
+        return res.json();
+    }
+
+    async function ghGetFile(path) {
+        const { owner, repo, token } = ghConfig();
+        const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+        const res = await fetch(url, {
+            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json' }
+        });
+        if (res.status === 404) return null;
+        if (!res.ok) throw new Error('GitHub取得エラー: ' + res.status);
+        const data = await res.json();
+        return { content: decodeURIComponent(escape(atob(data.content))), sha: data.sha };
+    }
+
+    $('uploadBtn').addEventListener('click', async () => {
+        const { owner, repo, token } = ghConfig();
+        if (!owner || !repo || !token) {
+            showStatus('先にGitHub接続設定を入力してください', 'err');
+            $('settingsBox').style.display = 'block';
+            return;
+        }
+        if (!beforeFile || !afterFile) {
+            showStatus('Before・After両方の写真を選んでください', 'err');
+            return;
+        }
+
+        $('uploadBtn').disabled = true;
+        showStatus('アップロード中…', 'busy');
+
+        try {
+            const id = Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+            const beforeBase64 = await resizeAndEncode(beforeFile);
+            const afterBase64 = await resizeAndEncode(afterFile);
+
+            const beforePath = `photos/${id}_before.jpg`;
+            const afterPath = `photos/${id}_after.jpg`;
+
+            await ghPutFile(beforePath, beforeBase64, `施工実績追加: ${id} before`);
+            await ghPutFile(afterPath, afterBase64, `施工実績追加: ${id} after`);
+
+            const dataPath = 'data/photos.json';
+            const existing = await ghGetFile(dataPath);
+            const list = existing ? JSON.parse(existing.content) : [];
+
+            list.unshift({
+                id,
+                title: $('title').value.trim(),
+                region: $('region').value.trim(),
+                color: $('color').value.trim(),
+                part: $('part').value,
+                date: $('workDate').value,
+                before: beforePath,
+                after: afterPath
+            });
+
+            const newContentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(list, null, 2))));
+            await ghPutFile(dataPath, newContentBase64, `施工実績データ更新: ${id}`, existing ? existing.sha : undefined);
+
+            showStatus('登録が完了しました！', 'ok');
+            beforeFile = null; afterFile = null;
+            $('beforePreview').style.display = 'none';
+            $('afterPreview').style.display = 'none';
+            $('title').value = ''; $('region').value = ''; $('color').value = '';
+        } catch (e) {
+            showStatus('エラー: ' + e.message, 'err');
+        }
+
+        $('uploadBtn').disabled = false;
+    });
+</script>
+</body>
+</html>

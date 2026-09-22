@@ -1,0 +1,15 @@
+{
+  "name": "kate-jireki",
+  "version": "1.0.0",
+  "description": "KATE 施工実績アーカイブアプリ",
+  "scripts": {
+    "build": "echo 'no build step needed'"
+  },
+  "dependencies": {
+    "@capacitor/core": "^5.7.0",
+    "@capacitor/android": "^5.7.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^5.7.0"
+  }
+}
