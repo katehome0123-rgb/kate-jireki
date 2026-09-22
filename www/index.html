@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>KATE 施工実績デモ</title>
+<title>KATE 施工実績</title>
 <style>
     :root {
         --navy: #0f172a;
@@ -16,133 +16,82 @@
     }
     @media (prefers-color-scheme: dark) {
         :root:not([data-theme="light"]) {
-            --bg: #0b1220;
-            --card: #151f30;
-            --text: #e2e8f0;
-            --text-muted: #94a3b8;
-            --border: #263449;
+            --bg: #0b1220; --card: #151f30; --text: #e2e8f0; --text-muted: #94a3b8; --border: #263449;
         }
     }
-    :root[data-theme="dark"] {
-        --bg: #0b1220;
-        --card: #151f30;
-        --text: #e2e8f0;
-        --text-muted: #94a3b8;
-        --border: #263449;
-    }
+    :root[data-theme="dark"] { --bg: #0b1220; --card: #151f30; --text: #e2e8f0; --text-muted: #94a3b8; --border: #263449; }
 
     * { box-sizing: border-box; }
     html, body {
-        height: 100%;
-        margin: 0;
-        background: var(--bg);
-        color: var(--text);
+        height: 100%; margin: 0; background: var(--bg); color: var(--text);
         font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic', sans-serif;
     }
     :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 
     .topbar {
-        background: var(--navy);
-        color: #fff;
+        background: var(--navy); color: #fff;
         padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 12px 16px;
-        position: sticky;
-        top: 0;
-        z-index: 10;
+        position: sticky; top: 0; z-index: 10;
+        display: flex; justify-content: space-between; align-items: center;
     }
-    .topbar .brand { font-size: 13px; letter-spacing: 3px; color: #94a3b8; font-weight: 700; margin-bottom: 6px; }
-    .topbar h1 { margin: 0; font-size: 18px; }
-
-    .demo-banner {
-        background: #fef3c7;
-        color: #92400e;
-        font-size: 12.5px;
-        font-weight: 700;
-        text-align: center;
-        padding: 8px;
-    }
+    .topbar .brand { font-size: 13px; letter-spacing: 3px; color: #94a3b8; font-weight: 700; }
+    .topbar h1 { margin: 2px 0 0; font-size: 18px; }
+    .settings-link { background: none; border: none; color: #94a3b8; font-size: 11px; text-decoration: underline; cursor: pointer; padding: 0; }
+    .sync-status { font-size: 11px; color: #94a3b8; margin-top: 4px; }
 
     .filters {
-        background: var(--card);
-        padding: 12px 16px;
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        position: sticky;
-        top: 0;
-        border-bottom: 1px solid var(--border);
+        background: var(--card); padding: 12px 16px; display: flex; gap: 8px; flex-wrap: wrap;
+        position: sticky; top: 0; border-bottom: 1px solid var(--border);
     }
     .filters select, .filters input {
-        flex: 1;
-        min-width: 90px;
-        padding: 9px 8px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        background: var(--bg);
-        color: var(--text);
-        font-size: 13px;
+        flex: 1; min-width: 90px; padding: 9px 8px; border-radius: 8px; border: 1px solid var(--border);
+        background: var(--bg); color: var(--text); font-size: 13px;
     }
 
     main { padding: 14px 16px 40px; max-width: 640px; margin: 0 auto; }
-
     .result-count { font-size: 12.5px; color: var(--text-muted); margin-bottom: 10px; }
 
     .grid { display: flex; flex-direction: column; gap: 12px; }
-    .card {
-        background: var(--card);
-        border-radius: 14px;
-        overflow: hidden;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        cursor: pointer;
-        border: 1px solid var(--border);
-    }
+    .card { background: var(--card); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); cursor: pointer; border: 1px solid var(--border); }
     .thumb-row { display: block; }
-    .thumb { width: 100%; aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: rgba(0,0,0,0.35); position: relative; margin-bottom: 2px; }
+    .thumb { width: 100%; aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--text-muted); position: relative; margin-bottom: 2px; background: var(--bg); overflow: hidden; }
     .thumb:last-child { margin-bottom: 0; }
-    .thumb.after { position: relative; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; }
     .thumb-label { position: absolute; top: 6px; left: 8px; background: rgba(0,0,0,0.55); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
     .card-body { padding: 14px 14px 10px; }
     .card-title { font-size: 14.5px; font-weight: 700; }
-    .card-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .card-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; display: flex; gap: 6px; flex-wrap: wrap; }
     .tag { background: var(--bg); border: 1px solid var(--border); padding: 2px 8px; border-radius: 20px; }
 
-    .empty { text-align: center; color: var(--text-muted); font-size: 13.5px; padding: 60px 20px; }
+    .empty { text-align: center; color: var(--text-muted); font-size: 13.5px; padding: 60px 20px; line-height: 1.8; }
 
-    /* 詳細モーダル */
-    .modal {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.55);
-        display: none; align-items: flex-end; justify-content: center; z-index: 50;
-    }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: flex-end; justify-content: center; z-index: 50; }
     .modal.open { display: flex; }
-    .modal-sheet {
-        background: var(--card);
-        width: 100%; max-width: 640px;
-        border-radius: 18px 18px 0 0;
-        padding: 18px 18px calc(20px + env(safe-area-inset-bottom, 0px));
-        max-height: 88vh;
-        overflow-y: auto;
-    }
+    .modal-sheet { background: var(--card); width: 100%; max-width: 640px; border-radius: 18px 18px 0 0; padding: 18px 18px calc(20px + env(safe-area-inset-bottom, 0px)); max-height: 88vh; overflow-y: auto; }
     .modal-close { text-align: right; }
     .modal-close button { background: none; border: none; font-size: 14px; color: var(--text-muted); cursor: pointer; }
     .detail-thumb-row { display: block; margin-top: 6px; }
-    .detail-thumb { width: 100%; aspect-ratio: 4 / 3; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: rgba(0,0,0,0.4); font-weight: 700; font-size: 12px; position: relative; margin-bottom: 8px; }
+    .detail-thumb { width: 100%; aspect-ratio: 4 / 3; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-weight: 700; font-size: 12px; position: relative; margin-bottom: 8px; background: var(--bg); overflow: hidden; }
     .detail-thumb:last-child { margin-bottom: 0; }
+    .detail-thumb img { width: 100%; height: 100%; object-fit: cover; }
     .detail-title { font-size: 17px; font-weight: 700; margin-top: 14px; }
-    .detail-meta { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .detail-meta { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
     .detail-actions { display: flex; gap: 10px; margin-top: 18px; }
-    .detail-actions button {
-        flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 13.5px; font-weight: 700; cursor: pointer;
-    }
+    .detail-actions button { flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 13.5px; font-weight: 700; cursor: pointer; }
     .btn-share { background: var(--accent); color: #fff; }
     .btn-print { background: var(--bg); color: var(--text); border: 1px solid var(--border) !important; }
 
-    .toast {
-        position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%);
-        background: var(--navy); color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 700;
-        opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 60;
-    }
+    .toast { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: var(--navy); color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 700; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 60; max-width: 85%; text-align: center; }
     .toast.show { opacity: 1; }
 
-    /* ══════════════ 印刷レイアウト(1案件=A4 1枚、Before上/After下、地域・邸名・色のみ表示) ══════════════ */
+    /* 接続設定 */
+    .settings-panel { background: var(--card); padding: 14px 16px; border-bottom: 1px solid var(--border); display: none; }
+    .settings-panel.open { display: block; }
+    .settings-panel input { width: 100%; padding: 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 13px; margin-top: 6px; }
+    .settings-panel button { margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 8px; background: var(--navy); color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; }
+    .settings-panel label { font-size: 12px; color: var(--text-muted); }
+
+    /* 印刷 */
     #printArea { display: none; }
     @page { size: A4 portrait; margin: 12mm; }
     @media print {
@@ -152,88 +101,20 @@
         .print-page { page-break-after: always; }
         .print-page:last-child { page-break-after: auto; }
     }
-    .print-page {
-        width: 100%;
-        height: 273mm;
-        display: flex;
-        flex-direction: column;
-        font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic', sans-serif;
-    }
-    .print-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        font-size: 13px;
-        color: #000;
-        padding-bottom: 8px;
-        margin-bottom: 4px;
-    }
+    .print-page { width: 100%; height: 273mm; display: flex; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic', sans-serif; }
+    .print-header { display: flex; justify-content: space-between; align-items: flex-start; font-size: 13px; color: #000; padding-bottom: 8px; margin-bottom: 4px; }
     .print-header .print-region { font-size: 13px; font-weight: 700; }
     .print-header .print-spec { text-align: right; line-height: 1.5; }
-    .print-title {
-        font-size: 22px;
-        font-weight: 900;
-        margin-bottom: 10px;
-    }
-    .print-photo {
-        flex: 1;
-        background-size: cover;
-        background-position: center;
-        border-radius: 4px;
-        margin-bottom: 10px;
-        position: relative;
-    }
+    .print-title { font-size: 22px; font-weight: 900; margin-bottom: 10px; }
+    .print-photo { flex: 1; background-size: cover; background-position: center; border-radius: 4px; margin-bottom: 10px; position: relative; }
     .print-photo:last-child { margin-bottom: 0; }
-    .print-photo-tag {
-        position: absolute;
-        top: 14px;
-        left: 14px;
-        width: 108px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #fff;
-        font-size: 16px;
-        font-weight: 900;
-        font-style: italic;
-        border-radius: 50%;
-    }
+    .print-photo-tag { position: absolute; top: 14px; left: 14px; width: 108px; height: 48px; display: flex; align-items: center; justify-content: center; background: #fff; font-size: 16px; font-weight: 900; font-style: italic; border-radius: 50%; }
     .print-photo-tag.tag-before { color: #2f4bd6; border: 3px solid #2f4bd6; }
     .print-photo-tag.tag-after { color: #e8492c; border: 3px solid #e8492c; }
-
-    /* 表紙ページ */
-    .print-cover {
-        width: 100%;
-        height: 273mm;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .print-cover-box {
-        border: 2px solid #4a5a3a;
-        padding: 6px;
-        width: 85%;
-    }
-    .print-cover-inner {
-        border: 1px solid #4a5a3a;
-        padding: 50px 30px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-between;
-        min-height: 420px;
-    }
-    .print-cover-title {
-        font-size: 32px;
-        font-weight: 900;
-        letter-spacing: 4px;
-        border-bottom: 1px solid #4a5a3a;
-        padding-bottom: 30px;
-        margin-bottom: 20px;
-        width: 100%;
-        text-align: center;
-    }
+    .print-cover { width: 100%; height: 273mm; display: flex; align-items: center; justify-content: center; }
+    .print-cover-box { border: 2px solid #4a5a3a; padding: 6px; width: 85%; }
+    .print-cover-inner { border: 1px solid #4a5a3a; padding: 50px 30px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 420px; }
+    .print-cover-title { font-size: 32px; font-weight: 900; letter-spacing: 4px; border-bottom: 1px solid #4a5a3a; padding-bottom: 30px; margin-bottom: 20px; width: 100%; text-align: center; }
     .print-cover-brand { text-align: center; margin-top: 40px; }
     .print-cover-brand .co-name { font-size: 14px; margin-bottom: 4px; }
     .print-cover-brand .logo-text { font-size: 26px; font-weight: 900; letter-spacing: 1px; }
@@ -242,15 +123,23 @@
 <body>
 
 <div class="topbar">
-    <div class="brand">KATE</div>
-    <h1>施工実績アーカイブ</h1>
+    <div>
+        <div class="brand">KATE</div>
+        <h1>施工実績アーカイブ</h1>
+        <div class="sync-status" id="syncStatus"></div>
+    </div>
+    <button class="settings-link" id="settingsLinkBtn">接続設定</button>
 </div>
-<div class="demo-banner">これはデモ画面です(色見本のダミーデータを使用しています)</div>
+
+<div class="settings-panel" id="settingsPanel">
+    <label>個人アクセストークン(ghp_で始まる文字列)</label>
+    <input type="text" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxx">
+    <button id="saveTokenBtn">保存して同期する</button>
+</div>
 
 <div class="filters">
-    <input type="text" id="searchInput" placeholder="キーワード検索">
+    <input type="text" id="searchInput" placeholder="キーワード検索(邸名・地域・色)">
     <select id="regionFilter"><option value="">地域: すべて</option></select>
-    <select id="colorFilter"><option value="">色: すべて</option></select>
     <select id="partFilter"><option value="">部位: すべて</option></select>
 </div>
 
@@ -258,7 +147,7 @@
     <div class="result-count" id="resultCount"></div>
     <button id="printAllBtn" style="width:100%;padding:12px;margin-bottom:12px;border:none;border-radius:10px;background:var(--navy);color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;">この一覧をまとめて印刷(1案件=A4 1枚)</button>
     <div class="grid" id="grid"></div>
-    <div class="empty" id="emptyMsg" style="display:none;">条件に合う施工実績がありません</div>
+    <div class="empty" id="emptyMsg" style="display:none;"></div>
 </main>
 
 <div class="modal" id="modal">
@@ -278,83 +167,215 @@
 <div id="printArea"></div>
 
 <script>
-    // ── ダミーデータ(実データは後でGitHubのdata/photos.jsonに置き換え予定) ──
-    const colorSwatch = {
-        'ホワイト系': '#f5f5f0',
-        'グレー系': '#9ca3af',
-        'ベージュ系': '#e8ddc7',
-        'ブラウン系': '#8b6b4a',
-        'ネイビー系': '#2b3a55',
-        'ブラック系': '#33363b'
-    };
+    // ── GitHubの接続先(固定) ──
+    const GH_OWNER = 'katehome0123-rgb';
+    const GH_REPO = 'kate-jireki';
 
-    const demoData = [
-        { id: 1, title: '田中様邸', region: '足立区', color: 'ホワイト系', part: '外壁', date: '2026-06-12' },
-        { id: 2, title: '佐藤様邸', region: '江戸川区', color: 'グレー系', part: '屋根', date: '2026-05-30' },
-        { id: 3, title: '鈴木様邸', region: '葛飾区', color: 'ベージュ系', part: '外壁', date: '2026-04-18' },
-        { id: 4, title: '高橋様邸', region: '足立区', color: 'ブラウン系', part: 'ベランダ', date: '2026-03-22' },
-        { id: 5, title: '伊藤様邸', region: '荒川区', color: 'ネイビー系', part: '外壁', date: '2026-02-14' },
-        { id: 6, title: '渡辺様邸', region: '江戸川区', color: 'アステックペイント ダークチャコール', part: '破風板', date: '2026-01-09' },
-        { id: 7, title: '山本様邸', region: '足立区', color: 'グレー系', part: '外壁', date: '2025-12-20' },
-    ];
-
-    function populateFilters() {
-        const regions = [...new Set(demoData.map(d => d.region))];
-        const colors = [...new Set(demoData.map(d => d.color))];
-        const parts = [...new Set(demoData.map(d => d.part))];
-        const fill = (selectEl, values) => {
-            values.forEach(v => {
-                const opt = document.createElement('option');
-                opt.value = v; opt.textContent = v;
-                selectEl.appendChild(opt);
-            });
-        };
-        fill(document.getElementById('regionFilter'), regions);
-        fill(document.getElementById('colorFilter'), colors);
-        fill(document.getElementById('partFilter'), parts);
+    function isNativeApp() {
+        return !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
     }
 
-    function makeThumb(entry, label) {
-        const div = document.createElement('div');
-        div.className = 'thumb' + (label === 'After' ? ' after' : '');
-        div.style.background = colorSwatch[entry.color] || '#ccc';
-        if (label === 'After') {
-            const tag = document.createElement('span');
-            tag.className = 'thumb-label';
-            tag.textContent = 'After';
-            div.appendChild(tag);
-        } else {
-            const tag = document.createElement('span');
-            tag.className = 'thumb-label';
-            tag.style.background = 'rgba(0,0,0,0.4)';
-            tag.textContent = 'Before';
-            div.style.filter = 'grayscale(60%) brightness(0.8)';
-            div.appendChild(tag);
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2600);
+    }
+
+    /* ══════════════ IndexedDB(端末内キャッシュ) ══════════════ */
+    const DB_NAME = 'kate_jireki_db';
+    const STORE_NAME = 'entries';
+
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open(DB_NAME, 1);
+            req.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+            };
+            req.onsuccess = (e) => resolve(e.target.result);
+            req.onerror = (e) => reject(e.target.error);
+        });
+    }
+    async function dbPutEntry(record) {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            tx.objectStore(STORE_NAME).put(record);
+            tx.oncomplete = () => resolve();
+            tx.onerror = (e) => reject(e.target.error);
+        });
+    }
+    async function dbGetAllEntries() {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const req = tx.objectStore(STORE_NAME).getAll();
+            req.onsuccess = () => resolve(req.result.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
+            req.onerror = (e) => reject(e.target.error);
+        });
+    }
+
+    /* ══════════════ GitHubからの同期 ══════════════ */
+    function ghToken() { return localStorage.getItem('kj_app_token'); }
+
+    async function ghFetchJson(path) {
+        const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
+        const res = await fetch(url, {
+            headers: { 'Authorization': `token ${ghToken()}`, 'Accept': 'application/vnd.github+json' }
+        });
+        if (res.status === 404) return null;
+        if (!res.ok) throw new Error('取得エラー: ' + res.status);
+        const data = await res.json();
+        return JSON.parse(decodeURIComponent(escape(atob(data.content))));
+    }
+
+    async function ghFetchImageBlob(path) {
+        const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
+        const res = await fetch(url, {
+            headers: { 'Authorization': `token ${ghToken()}`, 'Accept': 'application/vnd.github.raw' }
+        });
+        if (!res.ok) throw new Error('画像取得エラー: ' + res.status);
+        return res.blob();
+    }
+
+    async function syncNow(silent) {
+        if (!ghToken()) {
+            if (!silent) {
+                document.getElementById('settingsPanel').classList.add('open');
+                showToast('先にトークンを入力してください');
+            }
+            return;
         }
+        try {
+            const remoteList = await ghFetchJson('data/photos.json') || [];
+            const existing = await dbGetAllEntries();
+            const existingIds = new Set(existing.map(e => e.id));
+
+            let added = 0;
+            for (const item of remoteList) {
+                if (existingIds.has(item.id)) continue; // 既にキャッシュ済みならスキップ(節約)
+                const beforeBlob = await ghFetchImageBlob(item.before);
+                const afterBlob = await ghFetchImageBlob(item.after);
+                await dbPutEntry({ ...item, beforeBlob, afterBlob });
+                added++;
+            }
+
+            localStorage.setItem('kj_last_sync', new Date().toLocaleString('ja-JP'));
+            document.getElementById('settingsPanel').classList.remove('open');
+            if (!silent || added > 0) {
+                showToast(added > 0 ? `${added}件を新しく取得しました` : '最新の状態です');
+            }
+            await loadAndRender();
+        } catch (e) {
+            if (!silent) showToast('同期に失敗しました: ' + e.message);
+        }
+        updateSyncStatusLabel();
+    }
+
+    function updateSyncStatusLabel() {
+        const last = localStorage.getItem('kj_last_sync');
+        document.getElementById('syncStatus').textContent = last ? `最終同期: ${last}` : '未同期';
+    }
+
+    document.getElementById('settingsLinkBtn').addEventListener('click', () => {
+        document.getElementById('settingsPanel').classList.toggle('open');
+    });
+    document.getElementById('saveTokenBtn').addEventListener('click', () => {
+        const val = document.getElementById('tokenInput').value.trim();
+        if (!val) return;
+        localStorage.setItem('kj_app_token', val);
+        syncNow(false);
+    });
+    if (ghToken()) document.getElementById('tokenInput').value = ghToken();
+
+    // ── アプリを開いた時・他アプリから戻ってきた時、オンラインなら自動で同期(ボタンを押さなくてよい) ──
+    function autoSyncIfPossible() {
+        if (ghToken() && navigator.onLine) syncNow(true);
+    }
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') autoSyncIfPossible();
+    });
+    window.addEventListener('focus', autoSyncIfPossible);
+
+    /* ══════════════ 一覧表示 ══════════════ */
+    let allEntries = [];
+    let currentFiltered = [];
+    let currentEntry = null;
+
+    function populateFilters() {
+        const regionSel = document.getElementById('regionFilter');
+        const partSel = document.getElementById('partFilter');
+        regionSel.innerHTML = '<option value="">地域: すべて</option>';
+        partSel.innerHTML = '<option value="">部位: すべて</option>';
+        [...new Set(allEntries.map(d => d.region).filter(Boolean))].forEach(v => {
+            const o = document.createElement('option'); o.value = v; o.textContent = v; regionSel.appendChild(o);
+        });
+        [...new Set(allEntries.map(d => d.part).filter(Boolean))].forEach(v => {
+            const o = document.createElement('option'); o.value = v; o.textContent = v; partSel.appendChild(o);
+        });
+    }
+
+    function colorSummary(entry) {
+        const parts = [];
+        if (entry.wallColors && entry.wallColors.length) parts.push('壁: ' + entry.wallColors.join('・'));
+        if (entry.roofColor) parts.push('屋根: ' + entry.roofColor);
+        return parts;
+    }
+
+    function makeThumb(entry, label, containerClass) {
+        const div = document.createElement('div');
+        div.className = containerClass;
+        const blob = label === 'Before' ? entry.beforeBlob : entry.afterBlob;
+        if (blob) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(blob);
+            div.appendChild(img);
+        } else {
+            div.textContent = '写真未取得';
+        }
+        const tag = document.createElement('span');
+        tag.className = 'thumb-label';
+        tag.textContent = label;
+        div.appendChild(tag);
         return div;
     }
 
-    let currentFiltered = [];
+    async function loadAndRender() {
+        allEntries = await dbGetAllEntries();
+        populateFilters();
+        render();
+    }
 
     function render() {
         const keyword = document.getElementById('searchInput').value.trim();
         const region = document.getElementById('regionFilter').value;
-        const color = document.getElementById('colorFilter').value;
         const part = document.getElementById('partFilter').value;
 
-        const filtered = demoData.filter(d => {
+        const filtered = allEntries.filter(d => {
             if (region && d.region !== region) return false;
-            if (color && d.color !== color) return false;
             if (part && d.part !== part) return false;
-            if (keyword && !(d.title.includes(keyword) || d.region.includes(keyword) || d.color.includes(keyword))) return false;
+            if (keyword) {
+                const haystack = [d.title, d.region, d.roofColor, ...(d.wallColors || [])].join(' ');
+                if (!haystack.includes(keyword)) return false;
+            }
             return true;
         });
 
         document.getElementById('resultCount').textContent = filtered.length + ' 件';
         currentFiltered = filtered;
+
         const grid = document.getElementById('grid');
         grid.innerHTML = '';
-        document.getElementById('emptyMsg').style.display = filtered.length ? 'none' : 'block';
+        const emptyMsg = document.getElementById('emptyMsg');
+
+        if (allEntries.length === 0) {
+            emptyMsg.style.display = 'block';
+            emptyMsg.textContent = 'まだデータがありません。右上の「同期」から取得してください。';
+            return;
+        }
+        emptyMsg.style.display = filtered.length ? 'none' : 'block';
+        emptyMsg.textContent = '条件に合う施工実績がありません';
 
         filtered.forEach(entry => {
             const card = document.createElement('div');
@@ -363,116 +384,88 @@
 
             const body = document.createElement('div');
             body.className = 'card-body';
-            body.innerHTML = `
-                <div class="card-title">${entry.title}</div>
-                <div class="card-meta">
-                    <span class="tag">${entry.region}</span>
-                    <span class="tag">${entry.color}</span>
-                    <span class="tag">${entry.part}</span>
-                </div>
-            `;
+            const tags = [`<span class="tag">${entry.region || ''}</span>`, `<span class="tag">${entry.part || ''}</span>`]
+                .concat(colorSummary(entry).map(t => `<span class="tag">${t}</span>`));
+            body.innerHTML = `<div class="card-title">${entry.title || '(名称未設定)'}</div><div class="card-meta">${tags.join('')}</div>`;
             card.appendChild(body);
 
             const thumbRow = document.createElement('div');
             thumbRow.className = 'thumb-row';
-            thumbRow.appendChild(makeThumb(entry, 'Before'));
-            thumbRow.appendChild(makeThumb(entry, 'After'));
+            thumbRow.appendChild(makeThumb(entry, 'Before', 'thumb'));
+            thumbRow.appendChild(makeThumb(entry, 'After', 'thumb'));
             card.appendChild(thumbRow);
 
             grid.appendChild(card);
         });
     }
 
-    let currentEntry = null;
-
     function openModal(entry) {
         currentEntry = entry;
         const row = document.getElementById('detailThumbRow');
         row.innerHTML = '';
-        const before = makeThumb(entry, 'Before'); before.className = 'detail-thumb'; before.style.filter = 'grayscale(60%) brightness(0.8)';
-        const after = makeThumb(entry, 'After'); after.className = 'detail-thumb';
-        row.appendChild(before); row.appendChild(after);
+        row.appendChild(makeThumb(entry, 'Before', 'detail-thumb'));
+        row.appendChild(makeThumb(entry, 'After', 'detail-thumb'));
 
-        document.getElementById('detailTitle').textContent = entry.title;
-        document.getElementById('detailMeta').innerHTML = `
-            <span class="tag">${entry.region}</span>
-            <span class="tag">${entry.color}</span>
-            <span class="tag">${entry.part}</span>
-        `;
+        document.getElementById('detailTitle').textContent = entry.title || '(名称未設定)';
+        const tags = [`<span class="tag">${entry.region || ''}</span>`, `<span class="tag">${entry.part || ''}</span>`]
+            .concat(colorSummary(entry).map(t => `<span class="tag">${t}</span>`));
+        document.getElementById('detailMeta').innerHTML = tags.join('');
         document.getElementById('modal').classList.add('open');
     }
     function closeModal() { document.getElementById('modal').classList.remove('open'); }
 
-    // ── 写真エリアを左右にスワイプして次/前の案件へ切り替え ──
     function showNeighborEntry(direction) {
         if (!currentFiltered.length || !currentEntry) return;
         const idx = currentFiltered.findIndex(e => e.id === currentEntry.id);
         if (idx === -1) return;
         const nextIdx = idx + direction;
-        if (nextIdx < 0 || nextIdx >= currentFiltered.length) return; // 端まで来たら何もしない
+        if (nextIdx < 0 || nextIdx >= currentFiltered.length) return;
         openModal(currentFiltered[nextIdx]);
     }
-
     (function setupSwipe() {
         const row = document.getElementById('detailThumbRow');
         let startX = 0, startY = 0;
-        row.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-        }, { passive: true });
+        row.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; }, { passive: true });
         row.addEventListener('touchend', (e) => {
             const dx = e.changedTouches[0].clientX - startX;
             const dy = e.changedTouches[0].clientY - startY;
-            if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-                showNeighborEntry(dx < 0 ? 1 : -1); // 左にスワイプ→次、右にスワイプ→前
-            }
+            if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) showNeighborEntry(dx < 0 ? 1 : -1);
         }, { passive: true });
     })();
 
-    function demoAction(name) {
-        const t = document.getElementById('toast');
-        t.textContent = 'デモのため「' + name + '」は実際には行われません';
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 2200);
-    }
+    function demoAction(name) { showToast('「' + name + '」は準備中です'); }
 
-    // ── 印刷:1案件=A4 1枚、地域・仕様・邸名を表示、Beforeを上・Afterを下に配置 ──
+    /* ══════════════ 印刷 ══════════════ */
     function buildPrintPage(entry) {
         const page = document.createElement('div');
         page.className = 'print-page';
 
+        const specLines = colorSummary(entry).map(t => `<div>${t}</div>`).join('');
         const header = document.createElement('div');
         header.className = 'print-header';
-        header.innerHTML = `
-            <span class="print-region">${entry.region}</span>
-            <span class="print-spec">${entry.part}: ${entry.color}</span>
-        `;
+        header.innerHTML = `<span class="print-region">${entry.region || ''}</span><span class="print-spec">${specLines}</span>`;
         page.appendChild(header);
 
         const title = document.createElement('div');
         title.className = 'print-title';
-        title.textContent = entry.title;
+        title.textContent = entry.title || '';
         page.appendChild(title);
 
         const before = document.createElement('div');
         before.className = 'print-photo';
-        before.style.background = colorSwatch[entry.color] || '#ccc';
-        before.style.filter = 'grayscale(60%) brightness(0.85)';
-        before.innerHTML = '<span class="print-photo-tag tag-before">Before</span>';
-        // 実データ接続後はここを before.style.backgroundImage = `url(${entry.before})` に置き換え、filterは外す
+        if (entry.beforeBlob) before.style.backgroundImage = `url(${URL.createObjectURL(entry.beforeBlob)})`;
+        before.innerHTML += '<span class="print-photo-tag tag-before">Before</span>';
 
         const after = document.createElement('div');
         after.className = 'print-photo';
-        after.style.background = colorSwatch[entry.color] || '#ccc';
-        after.innerHTML = '<span class="print-photo-tag tag-after">After</span>';
-        // 実データ接続後はここを after.style.backgroundImage = `url(${entry.after})` に置き換える
+        if (entry.afterBlob) after.style.backgroundImage = `url(${URL.createObjectURL(entry.afterBlob)})`;
+        after.innerHTML += '<span class="print-photo-tag tag-after">After</span>';
 
         page.appendChild(before);
         page.appendChild(after);
         return page;
     }
 
-    // ── 表紙ページ ──
     function buildCoverPage() {
         const page = document.createElement('div');
         page.className = 'print-page print-cover';
@@ -497,35 +490,27 @@
         list.forEach(entry => area.appendChild(buildPrintPage(entry)));
         window.print();
     }
+    function printSingle(entry) { if (entry) printEntries([entry]); }
+    document.getElementById('printAllBtn').addEventListener('click', () => printEntries(currentFiltered));
 
-    function printSingle(entry) {
-        if (!entry) return;
-        printEntries([entry]);
-    }
-
-    document.getElementById('printAllBtn').addEventListener('click', () => {
-        printEntries(currentFiltered);
-    });
-
-    ['searchInput', 'regionFilter', 'colorFilter', 'partFilter'].forEach(id => {
+    ['searchInput', 'regionFilter', 'partFilter'].forEach(id => {
         document.getElementById(id).addEventListener('input', render);
     });
 
-    // ── アプリ内(Capacitor)かどうかを判定。アプリ内では印刷ボタンを隠す ──
-    function isNativeApp() {
-        return !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
-    }
     function applyPrintButtonVisibility() {
         const hide = isNativeApp();
-        const allBtn = document.getElementById('printAllBtn');
-        const singleBtn = document.getElementById('singlePrintBtn');
-        if (allBtn) allBtn.style.display = hide ? 'none' : 'block';
-        if (singleBtn) singleBtn.style.display = hide ? 'none' : 'block';
+        document.getElementById('printAllBtn').style.display = hide ? 'none' : 'block';
+        document.getElementById('singlePrintBtn').style.display = hide ? 'none' : 'block';
     }
 
-    populateFilters();
     applyPrintButtonVisibility();
-    render();
+    updateSyncStatusLabel();
+    loadAndRender();
+    if (!ghToken()) {
+        document.getElementById('settingsPanel').classList.add('open');
+    } else {
+        autoSyncIfPossible();
+    }
 </script>
 </body>
 </html>
