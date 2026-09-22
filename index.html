@@ -17,9 +17,18 @@
     h1 { font-size: 20px; color: #0f172a; }
     .card { background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 20px; }
     label { font-size: 13px; font-weight: 700; color: #334155; display: block; margin-bottom: 6px; margin-top: 14px; }
-    input[type="text"], input[type="date"], select {
+    input[type="text"] {
         width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;
     }
+    .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+
+    .tab-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .tab-btn {
+        padding: 9px 16px; border-radius: 20px; border: 1px solid #e2e8f0; background: #f8fafc;
+        font-size: 13px; font-weight: 700; color: #64748b; cursor: pointer;
+    }
+    .tab-btn.active { background: #0f172a; border-color: #0f172a; color: #fff; }
+
     .drop-row { display: flex; gap: 16px; margin-top: 14px; }
     .drop-zone {
         flex: 1; border: 2px dashed #cbd5e1; border-radius: 10px; padding: 16px; text-align: center;
@@ -49,12 +58,8 @@
     <h1>KATE 施工実績アップロード</h1>
 
     <div class="card">
-        <div class="settings-toggle" id="settingsToggle">GitHub接続設定を表示/変更</div>
+        <div class="settings-toggle" id="settingsToggle">接続設定を表示/変更</div>
         <div id="settingsBox">
-            <label>GitHubユーザー名(オーナー名)</label>
-            <input type="text" id="ghOwner" placeholder="例: katehome0123-rgb">
-            <label>リポジトリ名</label>
-            <input type="text" id="ghRepo" placeholder="kate-jireki" value="kate-jireki">
             <label>個人アクセストークン(ghp_で始まる文字列)</label>
             <input type="text" id="ghToken" placeholder="ghp_xxxxxxxxxxxxxxxx">
             <button class="main-btn" id="saveSettingsBtn" style="margin-top:14px;">この設定を保存する</button>
@@ -68,21 +73,25 @@
         <label>地域</label>
         <input type="text" id="region" placeholder="例: 足立区">
 
-        <label>色</label>
-        <input type="text" id="color" placeholder="例: ホワイト系">
-
         <label>部位</label>
-        <select id="part">
-            <option>外壁</option>
-            <option>屋根</option>
-            <option>ベランダ</option>
-            <option>破風板</option>
-            <option>軒天</option>
-            <option>その他</option>
-        </select>
+        <div class="tab-row" id="partTabs">
+            <button type="button" class="tab-btn active" data-part="外壁">外壁</button>
+            <button type="button" class="tab-btn" data-part="屋根">屋根</button>
+            <button type="button" class="tab-btn" data-part="ドア">ドア</button>
+            <button type="button" class="tab-btn" data-part="オリジナル">オリジナル</button>
+            <button type="button" class="tab-btn" data-part="その他">その他</button>
+        </div>
 
-        <label>日付</label>
-        <input type="date" id="workDate">
+        <label>壁の色(最大4つ、使う分だけ入力)</label>
+        <div class="color-grid">
+            <input type="text" id="wallColor1" placeholder="色1">
+            <input type="text" id="wallColor2" placeholder="色2">
+            <input type="text" id="wallColor3" placeholder="色3">
+            <input type="text" id="wallColor4" placeholder="色4">
+        </div>
+
+        <label>屋根の色</label>
+        <input type="text" id="roofColor" placeholder="例: Sシェイドモスグリーン">
 
         <div class="drop-row">
             <div class="drop-zone" id="beforeZone">
@@ -107,15 +116,25 @@
 <script>
     const $ = (id) => document.getElementById(id);
 
-    // ── 設定の読み書き ──
+    // ── GitHubの接続先は固定(ユーザーが毎回入力する必要はない) ──
+    const GH_OWNER = 'katehome0123-rgb';
+    const GH_REPO = 'kate-jireki';
+
+    // ── 部位タブ ──
+    let selectedPart = '外壁';
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedPart = btn.dataset.part;
+        });
+    });
+
+    // ── トークンの読み書き ──
     function loadSettings() {
-        $('ghOwner').value = localStorage.getItem('kj_owner') || '';
-        $('ghRepo').value = localStorage.getItem('kj_repo') || 'kate-jireki';
         $('ghToken').value = localStorage.getItem('kj_token') || '';
     }
     function saveSettings() {
-        localStorage.setItem('kj_owner', $('ghOwner').value.trim());
-        localStorage.setItem('kj_repo', $('ghRepo').value.trim());
         localStorage.setItem('kj_token', $('ghToken').value.trim());
         showStatus('設定を保存しました', 'ok');
         $('settingsBox').style.display = 'none';
@@ -125,9 +144,7 @@
     });
     $('saveSettingsBtn').addEventListener('click', saveSettings);
     loadSettings();
-    if (!localStorage.getItem('kj_owner')) $('settingsBox').style.display = 'block';
-
-    $('workDate').value = new Date().toISOString().slice(0, 10);
+    if (!localStorage.getItem('kj_token')) $('settingsBox').style.display = 'block';
 
     // ── 画像のドラッグ&ドロップ+選択+リサイズ ──
     let beforeFile = null, afterFile = null;
@@ -183,23 +200,16 @@
     }
 
     // ── GitHub API 経由でファイルを保存 ──
-    function ghConfig() {
-        return {
-            owner: localStorage.getItem('kj_owner'),
-            repo: localStorage.getItem('kj_repo'),
-            token: localStorage.getItem('kj_token')
-        };
-    }
+    function ghToken() { return localStorage.getItem('kj_token'); }
 
     async function ghPutFile(path, base64Content, message, sha) {
-        const { owner, repo, token } = ghConfig();
-        const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+        const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
         const body = { message, content: base64Content };
         if (sha) body.sha = sha;
         const res = await fetch(url, {
             method: 'PUT',
             headers: {
-                'Authorization': `token ${token}`,
+                'Authorization': `token ${ghToken()}`,
                 'Accept': 'application/vnd.github+json'
             },
             body: JSON.stringify(body)
@@ -212,10 +222,9 @@
     }
 
     async function ghGetFile(path) {
-        const { owner, repo, token } = ghConfig();
-        const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+        const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
         const res = await fetch(url, {
-            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json' }
+            headers: { 'Authorization': `token ${ghToken()}`, 'Accept': 'application/vnd.github+json' }
         });
         if (res.status === 404) return null;
         if (!res.ok) throw new Error('GitHub取得エラー: ' + res.status);
@@ -224,9 +233,8 @@
     }
 
     $('uploadBtn').addEventListener('click', async () => {
-        const { owner, repo, token } = ghConfig();
-        if (!owner || !repo || !token) {
-            showStatus('先にGitHub接続設定を入力してください', 'err');
+        if (!ghToken()) {
+            showStatus('先に接続設定(トークン)を入力してください', 'err');
             $('settingsBox').style.display = 'block';
             return;
         }
@@ -249,6 +257,13 @@
             await ghPutFile(beforePath, beforeBase64, `施工実績追加: ${id} before`);
             await ghPutFile(afterPath, afterBase64, `施工実績追加: ${id} after`);
 
+            const wallColors = [
+                $('wallColor1').value.trim(),
+                $('wallColor2').value.trim(),
+                $('wallColor3').value.trim(),
+                $('wallColor4').value.trim()
+            ].filter(c => c !== '');
+
             const dataPath = 'data/photos.json';
             const existing = await ghGetFile(dataPath);
             const list = existing ? JSON.parse(existing.content) : [];
@@ -257,11 +272,12 @@
                 id,
                 title: $('title').value.trim(),
                 region: $('region').value.trim(),
-                color: $('color').value.trim(),
-                part: $('part').value,
-                date: $('workDate').value,
+                part: selectedPart,
+                wallColors: wallColors,
+                roofColor: $('roofColor').value.trim(),
                 before: beforePath,
-                after: afterPath
+                after: afterPath,
+                createdAt: Date.now()
             });
 
             const newContentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(list, null, 2))));
@@ -271,7 +287,9 @@
             beforeFile = null; afterFile = null;
             $('beforePreview').style.display = 'none';
             $('afterPreview').style.display = 'none';
-            $('title').value = ''; $('region').value = ''; $('color').value = '';
+            $('title').value = ''; $('region').value = '';
+            $('wallColor1').value = ''; $('wallColor2').value = ''; $('wallColor3').value = ''; $('wallColor4').value = '';
+            $('roofColor').value = '';
         } catch (e) {
             showStatus('エラー: ' + e.message, 'err');
         }
